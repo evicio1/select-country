@@ -1,0 +1,50 @@
+name: Upgrade and Build Angular Project
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  upgrade-build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '18.x'
+
+    - name: Install Angular CLI
+      run: npm install -g @angular/cli@latest
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Upgrade Angular core and CLI packages
+      run: ng update @angular/core @angular/cli --allow-dirty
+
+    - name: Update all other dependencies
+      run: npm update
+
+    - name: Run lint
+      run: ng lint
+
+    - name: Run tests
+      run: ng test --watch=false --browsers=ChromeHeadless
+
+    - name: Build project
+      run: ng build
+
+    - name: Commit and push updates
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git add .
+        git commit -m "Upgrade Angular to latest version"
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
